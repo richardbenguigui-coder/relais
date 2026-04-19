@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Therapist {
+  id                   String             @id @default(cuid())
+  email                String             @unique
+  passwordHash         String
+  name                 String?
+  googleReviewLink     String?
+  onboardingDone       Boolean            @default(false)
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  subscriptionStatus   SubscriptionStatus @default(TRIAL)
+  trialEndsAt          DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  closures             Closure[]
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+model Closure {
+  id               String        @id @default(cuid())
+  therapistId      String
+  therapist        Therapist     @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+  patientFirstName String
+  patientEmail     String
+  closureDate      DateTime
+  status           ClosureStatus @default(SCHEDULED)
+  token            String        @unique @default(cuid())
+  email21SentAt    DateTime?
+  email28SentAt    DateTime?
+  respondedAt      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  feedback         Feedback?
+  scheduledEmails  ScheduledEmail[]
+
+  @@index([therapistId])
+  @@index([status])
+}
+
+enum ClosureStatus {
+  SCHEDULED
+  EMAIL_SENT
+  PRIVATE_FEEDBACK
+  PUBLIC_TESTIMONIAL
+  NO_FOLLOW_UP
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  closureId String   @unique
+  closure   Closure  @relation(fields: [closureId], references: [id], onDelete: Cascade)
+  answer1   String?  @db.Text
+  answer2   String?  @db.Text
+  answer3   String?  @db.Text
+  answer4   String?  @db.Text
+  answer5   String?  @db.Text
+  createdAt DateTime @default(now())
+}
+
+model ScheduledEmail {
+  id          String    @id @default(cuid())
+  closureId   String
+  closure     Closure   @relation(fields: [closureId], references: [id], onDelete: Cascade)
+  type        EmailType
+  scheduledAt DateTime
+  sentAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([scheduledAt, sentAt])
+}
+
+enum EmailType {
+  PATIENT_J21
+  PATIENT_J28
+}
