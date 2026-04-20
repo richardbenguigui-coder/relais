@@ -3,7 +3,16 @@ import { QUESTIONS } from "./questions";
 
 export { QUESTIONS };
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | undefined;
+function getResend(): Resend {
+  if (!_resend) {
+    const key = process.env.RESEND_API_KEY;
+    if (!key) throw new Error("RESEND_API_KEY is not set");
+    _resend = new Resend(key);
+  }
+  return _resend;
+}
+
 const FROM = process.env.RESEND_FROM_EMAIL || "relais@votredomaine.com";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -70,7 +79,7 @@ export async function sendPatientEmail(params: {
 </body>
 </html>`;
 
-  return resend.emails.send({
+  return getResend().emails.send({
     from: `Relais <${FROM}>`,
     to: patientEmail,
     subject,
@@ -131,7 +140,7 @@ export async function sendMonthlyTherapistSummary(params: {
 </body>
 </html>`;
 
-  return resend.emails.send({
+  return getResend().emails.send({
     from: `Relais <${FROM}>`,
     to: therapistEmail,
     subject: `Votre bilan Relais — ${month}`,
