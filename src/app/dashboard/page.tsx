@@ -50,6 +50,10 @@ export default async function DashboardPage() {
 
   const platformLabel = PLATFORM_LABELS[therapist.reviewPlatform] ?? "avis";
 
+  const daysRemaining = therapist.trialEndsAt
+    ? Math.max(0, Math.ceil((new Date(therapist.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0;
+
   return (
     <div className="min-h-screen bg-[#F4F7FD]">
       <DashboardNav
@@ -101,6 +105,56 @@ export default async function DashboardPage() {
             </Card>
           ))}
         </div>
+
+        {/* Billing */}
+        {therapist.subscriptionStatus === "TRIAL" && !isReadOnly && (
+          <div className="mb-6 bg-white rounded-xl border border-[#e2e8f0] shadow-sm px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-[#1B3A6B]">Période d&apos;essai</p>
+              <p className="text-sm text-[#6b7280] mt-0.5">
+                {daysRemaining > 0
+                  ? `Il vous reste ${daysRemaining} jour${daysRemaining > 1 ? "s" : ""} d'essai gratuit.`
+                  : "Votre essai se termine aujourd'hui."}
+              </p>
+            </div>
+            <Link
+              href="/api/stripe/checkout"
+              className="shrink-0 inline-flex items-center justify-center bg-[#C4923A] text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#b07e30] transition-colors"
+            >
+              S&apos;abonner — 9€/mois
+            </Link>
+          </div>
+        )}
+
+        {therapist.subscriptionStatus === "ACTIVE" && (
+          <div className="mb-6 bg-white rounded-xl border border-[#e2e8f0] shadow-sm px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-[#1B3A6B]">Abonnement actif</p>
+              <p className="text-sm text-[#6b7280] mt-0.5">Votre abonnement Relais est en cours.</p>
+            </div>
+            <Link
+              href="/api/stripe/portal"
+              className="shrink-0 inline-flex items-center justify-center bg-white text-[#1B3A6B] border border-[#1B3A6B] px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#F4F7FD] transition-colors"
+            >
+              Gérer mon abonnement
+            </Link>
+          </div>
+        )}
+
+        {therapist.subscriptionStatus === "PAST_DUE" && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-xl px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-red-700">Paiement en attente</p>
+              <p className="text-sm text-red-600 mt-0.5">Un paiement a échoué. Mettez à jour votre moyen de paiement pour continuer.</p>
+            </div>
+            <Link
+              href="/api/stripe/portal"
+              className="shrink-0 inline-flex items-center justify-center bg-red-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors"
+            >
+              Mettre à jour le paiement
+            </Link>
+          </div>
+        )}
 
         {/* Patient list */}
         {therapist.closures.length === 0 ? (
