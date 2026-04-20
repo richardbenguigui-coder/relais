@@ -28,6 +28,10 @@ export async function GET(req: NextRequest) {
     const { closure } = email;
 
     if (email.type === "PATIENT_J28") {
+      if (!closure.email21SentAt) {
+        results.push({ id: email.id, status: "skipped_j21_not_sent" });
+        continue;
+      }
       if (closure.respondedAt) {
         await prisma.scheduledEmail.update({
           where: { id: email.id },

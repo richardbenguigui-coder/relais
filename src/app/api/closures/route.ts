@@ -37,11 +37,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { patientFirstName, patientEmail, closureDate, closureType } = schema.parse(body);
 
-    // Schedule from the therapist-entered closure date, not the creation date.
-    // If closureDate was 25 days ago, email21Date is 4 days ago — the cron picks it up immediately.
+    const now = new Date();
     const closureDateObj = new Date(`${closureDate}T12:00:00.000Z`);
-    const email21Date = addDays(closureDateObj, 21);
-    const email28Date = addDays(closureDateObj, 28);
+    const rawEmail21Date = addDays(closureDateObj, 21);
+    const rawEmail28Date = addDays(closureDateObj, 28);
+
+    // If J+21 is already past, schedule it for the next cron run (now).
+    const email21Date = rawEmail21Date <= now ? now : rawEmail21Date;
+    // If J+28 is also past, schedule it 7 days after J+21 fires.
+    const email28Date = rawEmail28Date <= now ? addDays(email21Date, 7) : rawEmail28Date;
 
     const closure = await prisma.closure.create({
       data: {
