@@ -1,7 +1,11 @@
 [build]
 builder = "dockerfile"
 
+[variables]
+NEXT_PUBLIC_APP_URL = "https://relais-production.up.railway.app"
+
 [deploy]
+releaseCommand = "npx prisma migrate deploy"
 startCommand = "node server.js"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 30
