@@ -18,7 +18,6 @@ export async function createStripeCustomer(email: string, name: string) {
 export async function createCheckoutSession(customerId: string, therapistId: string) {
   return getStripe().checkout.sessions.create({
     customer: customerId,
-    payment_method_types: ["card"],
     mode: "subscription",
     line_items: [{ price: "price_1TOIu9DLKJb6uZ5KgKgmUfMB", quantity: 1 }],
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?subscription=success`,
