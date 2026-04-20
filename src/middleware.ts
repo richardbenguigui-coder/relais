@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifySession } from "./lib/auth";
+import { verifySession } from "./lib/session";
 
 const PUBLIC_PATHS = ["/login", "/signup", "/patient"];
 const ONBOARDING_PATH = "/onboarding";
