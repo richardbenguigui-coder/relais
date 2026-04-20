@@ -11,7 +11,7 @@ const PLATFORM_LABELS: Record<string, string> = {
 async function markPublicFeedback(token: string) {
   const closure = await prisma.closure.findUnique({
     where: { token },
-    include: { therapist: { select: { reviewLink: true, reviewPlatform: true, name: true } } },
+    include: { therapist: { select: { reviewLink: true, reviewPlatform: true, name: true } }, feedback: true },
   });
   if (!closure) return null;
 
