@@ -16,14 +16,11 @@ export async function createStripeCustomer(email: string, name: string) {
 }
 
 export async function createCheckoutSession(customerId: string, therapistId: string) {
-  const trialEnd = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 60; // 60 days
-
   return getStripe().checkout.sessions.create({
     customer: customerId,
     payment_method_types: ["card"],
     mode: "subscription",
     line_items: [{ price: "price_1TOIu9DLKJb6uZ5KgKgmUfMB", quantity: 1 }],
-    subscription_data: { trial_end: trialEnd },
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?subscription=success`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
     metadata: { therapistId },
