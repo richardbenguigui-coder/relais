@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession } from "./lib/session";
 
-const PUBLIC_PATHS = ["/login", "/signup", "/patient"];
+const PUBLIC_PATHS = ["/login", "/signup", "/patient", "/forgot-password", "/reset-password"];
 const ONBOARDING_PATH = "/onboarding";
 
 export async function middleware(request: NextRequest) {

@@ -211,6 +211,29 @@ export async function sendInterruptedPatientEmail(params: {
   });
 }
 
+export async function sendPasswordResetEmail(params: {
+  email: string;
+  resetUrl: string;
+}) {
+  const { email, resetUrl } = params;
+  const subject = "Réinitialisez votre mot de passe Relais";
+
+  const body = `
+    ${p(`Bonjour,`)}
+    ${p(`Vous avez demandé à réinitialiser votre mot de passe Relais. Cliquez sur le bouton ci-dessous pour en créer un nouveau.`)}
+    ${btnPrimary(resetUrl, "Réinitialiser mon mot de passe")}
+    ${divider()}
+    ${p(`Ce lien est valable <strong>1 heure</strong>. Si vous n'avez pas demandé cette réinitialisation, ignorez simplement cet email — votre mot de passe restera inchangé.`, true)}
+  `;
+
+  return getResend().emails.send({
+    from: `Relais <${FROM}>`,
+    to: email,
+    subject,
+    html: emailShell(subject, body),
+  });
+}
+
 export async function sendMonthlyTherapistSummary(params: {
   therapistEmail: string;
   therapistName: string;

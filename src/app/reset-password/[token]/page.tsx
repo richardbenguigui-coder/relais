@@ -1,15 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 
-export default function SignupPage() {
+export default function ResetPasswordPage() {
+  const { token } = useParams<{ token: string }>();
   const router = useRouter();
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -30,20 +29,19 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/signup", {
+      const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ token, password }),
       });
 
       const data = await res.json();
-
       if (!res.ok) {
         setError(data.error || "Une erreur est survenue.");
         return;
       }
 
-      router.push("/onboarding");
+      router.push("/login?reset=success");
     } catch {
       setError("Une erreur est survenue. Veuillez réessayer.");
     } finally {
@@ -56,22 +54,13 @@ export default function SignupPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-[#1B3A6B]">Relais</h1>
-          <p className="text-[#6b7280] mt-2">Créez votre espace thérapeute — 2 mois offerts</p>
+          <p className="text-[#6b7280] mt-2">Créez un nouveau mot de passe</p>
         </div>
 
         <div className="bg-white rounded-xl border border-[#e2e8f0] shadow-sm p-8">
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <Input
-              label="Adresse email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="vous@exemple.fr"
-              required
-              autoComplete="email"
-            />
             <PasswordInput
-              label="Mot de passe"
+              label="Nouveau mot de passe"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="8 caractères minimum"
@@ -94,20 +83,13 @@ export default function SignupPage() {
             )}
 
             <Button type="submit" loading={loading} size="lg" className="w-full mt-1">
-              Créer mon compte
+              Enregistrer le mot de passe
             </Button>
           </form>
 
-          <div className="mt-6 p-4 bg-[#F4F7FD] rounded-lg">
-            <p className="text-xs text-[#6b7280] text-center">
-              2 mois d&apos;essai gratuit · Sans carte bancaire · 9€/mois ensuite
-            </p>
-          </div>
-
-          <p className="text-center text-sm text-[#6b7280] mt-4">
-            Déjà un compte ?{" "}
+          <p className="text-center text-sm text-[#6b7280] mt-6">
             <Link href="/login" className="text-[#1B3A6B] font-medium hover:underline">
-              Se connecter
+              ← Retour à la connexion
             </Link>
           </p>
         </div>

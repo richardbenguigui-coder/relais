@@ -18,6 +18,8 @@ model Therapist {
   stripeSubscriptionId String?            @unique
   subscriptionStatus   SubscriptionStatus @default(TRIAL)
   trialEndsAt          DateTime?
+  resetToken           String?            @unique
+  resetTokenExpiry     DateTime?
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
 
