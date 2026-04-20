@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { createSession, COOKIE_NAME } from "@/lib/auth";
-import { createStripeCustomer } from "@/lib/stripe";
 import { addDays } from "date-fns";
 import { z } from "zod";
 
@@ -23,14 +22,10 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // Create Stripe customer
-    const stripeCustomer = await createStripeCustomer(email, email);
-
     const therapist = await prisma.therapist.create({
       data: {
         email,
         passwordHash,
-        stripeCustomerId: stripeCustomer.id,
         subscriptionStatus: "TRIAL",
         trialEndsAt: addDays(new Date(), 60),
       },
