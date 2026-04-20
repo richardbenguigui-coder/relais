@@ -19,7 +19,7 @@ export async function createCheckoutSession(customerId: string, therapistId: str
   return getStripe().checkout.sessions.create({
     customer: customerId,
     mode: "subscription",
-    line_items: [{ price: "price_1TOIu9DLKJb6uZ5KgKgmUfMB", quantity: 1 }],
+    line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?subscription=success`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
     metadata: { therapistId },
