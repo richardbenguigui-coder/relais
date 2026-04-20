@@ -1,15 +1,24 @@
 import Stripe from "stripe";
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+let _stripe: Stripe | undefined;
+
+export function getStripe(): Stripe {
+  if (!_stripe) {
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key) throw new Error("STRIPE_SECRET_KEY is not set");
+    _stripe = new Stripe(key);
+  }
+  return _stripe;
+}
 
 export async function createStripeCustomer(email: string, name: string) {
-  return stripe.customers.create({ email, name });
+  return getStripe().customers.create({ email, name });
 }
 
 export async function createCheckoutSession(customerId: string, therapistId: string) {
   const trialEnd = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 60; // 60 days
 
-  return stripe.checkout.sessions.create({
+  return getStripe().checkout.sessions.create({
     customer: customerId,
     payment_method_types: ["card"],
     mode: "subscription",
@@ -22,7 +31,7 @@ export async function createCheckoutSession(customerId: string, therapistId: str
 }
 
 export async function createBillingPortalSession(customerId: string) {
-  return stripe.billingPortal.sessions.create({
+  return getStripe().billingPortal.sessions.create({
     customer: customerId,
     return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
   });
