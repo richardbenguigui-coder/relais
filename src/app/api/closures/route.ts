@@ -8,6 +8,7 @@ const schema = z.object({
   patientFirstName: z.string().min(1).max(100),
   patientEmail: z.string().email(),
   closureDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  closureType: z.enum(["STANDARD", "INTERRUPTED"]).default("STANDARD"),
 });
 
 export async function POST(req: NextRequest) {
@@ -21,7 +22,6 @@ export async function POST(req: NextRequest) {
 
     if (!therapist) return NextResponse.json({ error: "Compte introuvable." }, { status: 404 });
 
-    // Block creation if trial ended or subscription inactive
     const trialExpired =
       therapist.subscriptionStatus === "TRIAL" &&
       therapist.trialEndsAt &&
@@ -35,9 +35,10 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { patientFirstName, patientEmail, closureDate } = schema.parse(body);
+    const { patientFirstName, patientEmail, closureDate, closureType } = schema.parse(body);
 
-    // Parse closure date at noon UTC to avoid timezone issues
+    // Schedule from the therapist-entered closure date, not the creation date.
+    // If closureDate was 25 days ago, email21Date is 4 days ago — the cron picks it up immediately.
     const closureDateObj = new Date(`${closureDate}T12:00:00.000Z`);
     const email21Date = addDays(closureDateObj, 21);
     const email28Date = addDays(closureDateObj, 28);
@@ -48,6 +49,7 @@ export async function POST(req: NextRequest) {
         patientFirstName,
         patientEmail,
         closureDate: closureDateObj,
+        closureType,
         scheduledEmails: {
           create: [
             { type: "PATIENT_J21", scheduledAt: email21Date },

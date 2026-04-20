@@ -11,7 +11,8 @@ model Therapist {
   email                String             @unique
   passwordHash         String
   name                 String?
-  googleReviewLink     String?
+  reviewLink           String?
+  reviewPlatform       ReviewPlatform     @default(GOOGLE)
   onboardingDone       Boolean            @default(false)
   stripeCustomerId     String?            @unique
   stripeSubscriptionId String?            @unique
@@ -21,6 +22,12 @@ model Therapist {
   updatedAt            DateTime           @updatedAt
 
   closures             Closure[]
+}
+
+enum ReviewPlatform {
+  GOOGLE
+  TRUSTPILOT
+  AVIS_VERIFIES
 }
 
 enum SubscriptionStatus {
@@ -37,11 +44,13 @@ model Closure {
   patientFirstName String
   patientEmail     String
   closureDate      DateTime
+  closureType      ClosureType   @default(STANDARD)
   status           ClosureStatus @default(SCHEDULED)
   token            String        @unique @default(cuid())
   email21SentAt    DateTime?
   email28SentAt    DateTime?
   respondedAt      DateTime?
+  publicFeedbackAt DateTime?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
@@ -52,11 +61,17 @@ model Closure {
   @@index([status])
 }
 
+enum ClosureType {
+  STANDARD
+  INTERRUPTED
+}
+
 enum ClosureStatus {
   SCHEDULED
   EMAIL_SENT
   PRIVATE_FEEDBACK
   PUBLIC_TESTIMONIAL
+  BOTH_FEEDBACK
   NO_FOLLOW_UP
 }
 

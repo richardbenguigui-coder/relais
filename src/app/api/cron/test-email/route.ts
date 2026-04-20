@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendPatientEmail } from "@/lib/email";
+import { sendPatientEmail, sendInterruptedPatientEmail } from "@/lib/email";
 import { z } from "zod";
 
 const schema = z.object({ closureId: z.string() });
@@ -19,7 +19,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Closure not found" }, { status: 404 });
   }
 
-  await sendPatientEmail({
+  const sendFn = closure.closureType === "INTERRUPTED"
+    ? sendInterruptedPatientEmail
+    : sendPatientEmail;
+
+  await sendFn({
     patientEmail: closure.patientEmail,
     patientFirstName: closure.patientFirstName,
     token: closure.token,

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendPatientEmail } from "@/lib/email";
+import { sendPatientEmail, sendInterruptedPatientEmail } from "@/lib/email";
 
-// Called daily by Vercel Cron or an external scheduler
-// Secured by a shared secret header
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -12,7 +10,6 @@ export async function GET(req: NextRequest) {
 
   const now = new Date();
 
-  // Find all pending scheduled emails that are due
   const pending = await prisma.scheduledEmail.findMany({
     where: {
       sentAt: null,
@@ -30,7 +27,6 @@ export async function GET(req: NextRequest) {
   for (const email of pending) {
     const { closure } = email;
 
-    // Skip if patient already responded (for J28, skip if responded after J21 email)
     if (email.type === "PATIENT_J28") {
       if (closure.respondedAt) {
         await prisma.scheduledEmail.update({
@@ -40,7 +36,6 @@ export async function GET(req: NextRequest) {
         results.push({ id: email.id, status: "skipped_responded" });
         continue;
       }
-      // Skip J28 if J21 already triggered a final NO_FOLLOW_UP (patient declined twice)
       if (closure.status === "NO_FOLLOW_UP" && closure.email28SentAt !== null) {
         await prisma.scheduledEmail.update({
           where: { id: email.id },
@@ -52,7 +47,11 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-      await sendPatientEmail({
+      const sendFn = closure.closureType === "INTERRUPTED"
+        ? sendInterruptedPatientEmail
+        : sendPatientEmail;
+
+      await sendFn({
         patientEmail: closure.patientEmail,
         patientFirstName: closure.patientFirstName,
         token: closure.token,

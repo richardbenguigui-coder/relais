@@ -12,18 +12,25 @@ export async function POST(
 ) {
   const { token } = await params;
 
-  const closure = await prisma.closure.findUnique({ where: { token } });
+  const closure = await prisma.closure.findUnique({
+    where: { token },
+    include: { feedback: true },
+  });
   if (!closure) {
     return NextResponse.json({ error: "Lien invalide." }, { status: 404 });
   }
 
-  if (closure.respondedAt) {
+  // Block only if private feedback already submitted (public testimonial allows double feedback)
+  if (closure.feedback) {
     return NextResponse.json({ error: "Réponse déjà enregistrée." }, { status: 409 });
   }
 
   try {
     const body = await req.json();
     const { answers } = schema.parse(body);
+
+    // If patient already left a public review, mark as both; otherwise private only
+    const newStatus = closure.publicFeedbackAt ? "BOTH_FEEDBACK" : "PRIVATE_FEEDBACK";
 
     await prisma.$transaction([
       prisma.feedback.create({
@@ -39,8 +46,8 @@ export async function POST(
       prisma.closure.update({
         where: { id: closure.id },
         data: {
-          status: "PRIVATE_FEEDBACK",
-          respondedAt: new Date(),
+          status: newStatus,
+          respondedAt: closure.respondedAt ?? new Date(),
         },
       }),
     ]);

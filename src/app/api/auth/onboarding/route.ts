@@ -5,7 +5,8 @@ import { z } from "zod";
 
 const schema = z.object({
   name: z.string().min(1).max(100),
-  googleReviewLink: z.string().url(),
+  reviewPlatform: z.enum(["GOOGLE", "TRUSTPILOT", "AVIS_VERIFIES"]),
+  reviewLink: z.string().url(),
 });
 
 export async function POST(req: NextRequest) {
@@ -14,11 +15,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { name, googleReviewLink } = schema.parse(body);
+    const { name, reviewPlatform, reviewLink } = schema.parse(body);
 
     await prisma.therapist.update({
       where: { id: session.therapistId },
-      data: { name, googleReviewLink, onboardingDone: true },
+      data: { name, reviewPlatform, reviewLink, onboardingDone: true },
     });
 
     return NextResponse.json({ success: true });

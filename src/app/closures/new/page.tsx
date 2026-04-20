@@ -11,10 +11,10 @@ export default function NewClosurePage() {
   const [patientFirstName, setPatientFirstName] = useState("");
   const [patientEmail, setPatientEmail] = useState("");
   const [closureDate, setClosureDate] = useState("");
+  const [closureType, setClosureType] = useState<"STANDARD" | "INTERRUPTED">("STANDARD");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Max date is today
   const today = new Date().toISOString().split("T")[0];
 
   async function handleSubmit(e: React.FormEvent) {
@@ -26,7 +26,7 @@ export default function NewClosurePage() {
       const res = await fetch("/api/closures", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ patientFirstName, patientEmail, closureDate }),
+        body: JSON.stringify({ patientFirstName, patientEmail, closureDate, closureType }),
       });
 
       const data = await res.json();
@@ -107,6 +107,57 @@ export default function NewClosurePage() {
                     })
                   : "…"}
               </p>
+            </div>
+
+            {/* Closure type */}
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-[#374151]">Type de fin de suivi</label>
+              <div className="flex flex-col gap-2">
+                <label
+                  className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    closureType === "STANDARD"
+                      ? "border-[#1B3A6B] bg-[#F4F7FD]"
+                      : "border-[#e2e8f0] hover:border-[#1B3A6B]"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="closureType"
+                    value="STANDARD"
+                    checked={closureType === "STANDARD"}
+                    onChange={() => setClosureType("STANDARD")}
+                    className="mt-0.5 accent-[#1B3A6B]"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-[#1B3A6B]">Fin de suivi ordinaire</div>
+                    <div className="text-xs text-[#6b7280]">
+                      Le patient et vous avez convenu ensemble de clore le suivi.
+                    </div>
+                  </div>
+                </label>
+                <label
+                  className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    closureType === "INTERRUPTED"
+                      ? "border-[#1B3A6B] bg-[#F4F7FD]"
+                      : "border-[#e2e8f0] hover:border-[#1B3A6B]"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="closureType"
+                    value="INTERRUPTED"
+                    checked={closureType === "INTERRUPTED"}
+                    onChange={() => setClosureType("INTERRUPTED")}
+                    className="mt-0.5 accent-[#1B3A6B]"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-[#1B3A6B]">Suivi interrompu</div>
+                    <div className="text-xs text-[#6b7280]">
+                      Le patient a cessé de venir sans prévenir. L&apos;email envoyé sera plus doux, sans demande d&apos;avis public.
+                    </div>
+                  </div>
+                </label>
+              </div>
             </div>
 
             {error && (

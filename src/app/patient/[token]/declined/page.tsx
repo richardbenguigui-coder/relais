@@ -5,20 +5,17 @@ async function markDeclined(token: string) {
   const closure = await prisma.closure.findUnique({ where: { token } });
   if (!closure) return null;
 
-  // Only set to NO_FOLLOW_UP if not already responded with public/private
-  if (
-    closure.status !== "PRIVATE_FEEDBACK" &&
-    closure.status !== "PUBLIC_TESTIMONIAL"
-  ) {
-    // If J28 already sent (second decline), mark as final NO_FOLLOW_UP
+  const alreadyResponded = ["PRIVATE_FEEDBACK", "PUBLIC_TESTIMONIAL", "BOTH_FEEDBACK"].includes(
+    closure.status
+  );
+
+  if (!alreadyResponded) {
     if (closure.email28SentAt) {
       await prisma.closure.update({
         where: { token },
         data: { status: "NO_FOLLOW_UP", respondedAt: new Date() },
       });
     }
-    // If J21 was just sent, keep status so J28 follow-up still fires
-    // The cron will send J28 since respondedAt is null
   }
 
   return closure;

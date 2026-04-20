@@ -6,12 +6,10 @@ import { DashboardNav } from "@/components/DashboardNav";
 import { Card, CardBody } from "@/components/ui/Card";
 import { ClosureStatusBadge } from "@/components/ClosureStatusBadge";
 
-const STATUS_LABELS: Record<string, string> = {
-  SCHEDULED: "Programmé",
-  EMAIL_SENT: "Email envoyé",
-  PRIVATE_FEEDBACK: "Retour privé reçu",
-  PUBLIC_TESTIMONIAL: "Témoignage public",
-  NO_FOLLOW_UP: "Sans suite",
+const PLATFORM_LABELS: Record<string, string> = {
+  GOOGLE: "Google",
+  TRUSTPILOT: "Trustpilot",
+  AVIS_VERIFIES: "Avis Vérifiés",
 };
 
 export default async function DashboardPage() {
@@ -41,10 +39,16 @@ export default async function DashboardPage() {
     total: therapist.closures.length,
     scheduled: therapist.closures.filter((c) => c.status === "SCHEDULED").length,
     emailSent: therapist.closures.filter((c) => c.status === "EMAIL_SENT").length,
-    privateFeedback: therapist.closures.filter((c) => c.status === "PRIVATE_FEEDBACK").length,
-    publicTestimonial: therapist.closures.filter((c) => c.status === "PUBLIC_TESTIMONIAL").length,
+    privateFeedback: therapist.closures.filter(
+      (c) => c.status === "PRIVATE_FEEDBACK" || c.status === "BOTH_FEEDBACK"
+    ).length,
+    publicTestimonial: therapist.closures.filter(
+      (c) => c.status === "PUBLIC_TESTIMONIAL" || c.status === "BOTH_FEEDBACK"
+    ).length,
     noFollowUp: therapist.closures.filter((c) => c.status === "NO_FOLLOW_UP").length,
   };
+
+  const platformLabel = PLATFORM_LABELS[therapist.reviewPlatform] ?? "avis";
 
   return (
     <div className="min-h-screen bg-[#F4F7FD]">
@@ -119,11 +123,11 @@ export default async function DashboardPage() {
               <Card key={closure.id}>
                 <CardBody className="flex flex-col sm:flex-row sm:items-start gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-1">
+                    <div className="flex items-center gap-3 mb-1 flex-wrap">
                       <span className="font-semibold text-[#1B3A6B]">
                         {closure.patientFirstName}
                       </span>
-                      <ClosureStatusBadge status={closure.status} />
+                      <ClosureStatusBadge status={closure.status} closureType={closure.closureType} />
                     </div>
                     <p className="text-sm text-[#6b7280]">
                       Fin de suivi :{" "}
@@ -141,7 +145,7 @@ export default async function DashboardPage() {
                     )}
 
                     {/* Private feedback */}
-                    {closure.status === "PRIVATE_FEEDBACK" && closure.feedback && (
+                    {closure.feedback && (
                       <div className="mt-4 bg-[#F4F7FD] rounded-lg p-4 text-sm">
                         <p className="font-medium text-[#1B3A6B] mb-3">Retour privé</p>
                         {[
@@ -161,19 +165,20 @@ export default async function DashboardPage() {
                       </div>
                     )}
 
-                    {/* Public testimonial */}
-                    {closure.status === "PUBLIC_TESTIMONIAL" && (
-                      <div className="mt-3">
-                        <a
-                          href={therapist.googleReviewLink || "#"}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-[#C4923A] font-medium hover:underline"
-                        >
-                          → Voir sur Google Business
-                        </a>
-                      </div>
-                    )}
+                    {/* Public testimonial link */}
+                    {(closure.status === "PUBLIC_TESTIMONIAL" || closure.status === "BOTH_FEEDBACK") &&
+                      therapist.reviewLink && (
+                        <div className="mt-3">
+                          <a
+                            href={therapist.reviewLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-[#C4923A] font-medium hover:underline"
+                          >
+                            → Voir sur {platformLabel}
+                          </a>
+                        </div>
+                      )}
                   </div>
                 </CardBody>
               </Card>
