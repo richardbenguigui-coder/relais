@@ -7,6 +7,7 @@ import Stripe from "stripe";
 export const runtime = "nodejs";
 
 export async function GET() {
+  console.log("[checkout] STRIPE_PRICE_ID env:", process.env.STRIPE_PRICE_ID);
   try {
     const therapist = await getTherapist();
     if (!therapist) {
