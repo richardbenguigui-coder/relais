@@ -14,7 +14,10 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { closureId } = schema.parse(body);
 
-  const closure = await prisma.closure.findUnique({ where: { id: closureId } });
+  const closure = await prisma.closure.findUnique({
+    where: { id: closureId },
+    include: { therapist: { select: { name: true } } },
+  });
   if (!closure) {
     return NextResponse.json({ error: "Closure not found" }, { status: 404 });
   }
@@ -26,6 +29,7 @@ export async function POST(req: NextRequest) {
   await sendFn({
     patientEmail: closure.patientEmail,
     patientFirstName: closure.patientFirstName,
+    therapistName: closure.therapist.name,
     token: closure.token,
     isFollowUp: false,
   });

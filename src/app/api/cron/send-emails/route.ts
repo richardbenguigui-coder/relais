@@ -54,6 +54,7 @@ export async function GET(req: NextRequest) {
       await sendFn({
         patientEmail: closure.patientEmail,
         patientFirstName: closure.patientFirstName,
+        therapistName: closure.therapist.name,
         token: closure.token,
         isFollowUp: email.type === "PATIENT_J28",
       });
