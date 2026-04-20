@@ -2,7 +2,7 @@
 builder = "dockerfile"
 
 [variables]
-NEXT_PUBLIC_APP_URL = "https://relais-production.up.railway.app"
+NEXT_PUBLIC_APP_URL = "https://app.relais-therapeutes.com"
 
 [deploy]
 releaseCommand = "npx prisma migrate deploy"
